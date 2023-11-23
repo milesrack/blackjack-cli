@@ -48,8 +48,9 @@ int main(void){
     char action;
 
     srand(time(NULL));
-    deckPtr = malloc(sizeof(card) * deckSize);
     
+    deckPtr = malloc(sizeof(card) * deckSize);
+
     if (deckPtr == NULL){
         printf("malloc() failed!\n");
     }
@@ -82,7 +83,7 @@ int main(void){
             action = '\0';
 
             while (action != 'h' && action != 's'){
-                printf("Your current score is %d, [h]it or [s]tand? ", p.score);
+                printf("[h]it or [s]tand? ");
                 scanf(" %c", &action);
                 action = tolower(action);
             }
@@ -175,19 +176,57 @@ void printCard(card card){
 }
 
 void printHand(player player, bool withHoleCard){
+    char cardFormatCopy[84];
+    char *token;
+
     if (player.dealer){
-        printf("Dealer:\n");
-    }
-    else{
-        printf("Player:\n");
-    }
-    for (int i = 0; i < player.index; i++){
-        if (withHoleCard && i == 0){
-            printf(cardFormat, "?", "?", "?");
+        if (withHoleCard){
+            printf("Dealer (?)\n");
         }
         else{
-            printCard(player.hand[i]);
+            printf("Dealer (%d)\n", player.score);
         }
+    }
+    else{
+        printf("Player (%d)\n", player.score);
+    }
+
+    strcpy(cardFormatCopy, cardFormat);
+    token = strtok(cardFormatCopy, "\n");
+
+    while (token != NULL){
+        for (int i = 0; i < player.index; i++){
+            if (strstr(token, "%-2s") != NULL){
+                if (withHoleCard && i == 0){
+                    printf(token, "?");
+                }
+                else{
+                    printf(token, player.hand[i].symbol);
+                }
+            }
+            else if (strstr(token, "%s") != NULL){
+                if (withHoleCard && i == 0){
+                    printf(token, "?");
+                }
+                else{
+                    printf(token, suits[player.hand[i].color][player.hand[i].suit]);
+                }
+            }
+            else if (strstr(token, "%2s") != NULL){
+                if (withHoleCard && i == 0){
+                    printf(token, "?");
+                }
+                else{
+                    printf(token, player.hand[i].symbol);
+                }
+            }
+            else{
+                printf("%s", token);
+            }
+            printf("\t");
+        }
+        puts("");
+        token = strtok(NULL, "\n");
     }
 }
 
