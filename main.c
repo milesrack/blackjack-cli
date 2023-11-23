@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
 
 const char *cardFormat = "+---------+\n\
 | %-2s      |\n\
@@ -23,16 +25,27 @@ typedef struct Card{
     int color;
 } card;
 
+typedef struct Player{
+    int score;
+    bool dealer;
+    int index;
+    card hand[11];
+} player;
+
 void initializeDeck(card *deckPtr, int deckSize);
 void shuffleDeck(card *deckPtr, int deckSize);
 void printDeck(card *deckPtr, int deckSize);
 void printCard(card card);
+void printHand(player player, bool withHoleCard);
 card drawCard(card **deckPtr, int *deckSize);
+void deal(card **deckPtr, int *deckSize, player *player, int amount);
 
 int main(void){
     int deckSize = 52;
     card *deckPtr;
-    card draw;
+    player p = {0, false, 0};
+    player dealer = {0, true, 0};
+    char action;
 
     srand(time(NULL));
     deckPtr = malloc(sizeof(card) * deckSize);
@@ -41,16 +54,70 @@ int main(void){
         printf("malloc() failed!\n");
     }
     else{
+        // create deck and shuffle
         initializeDeck(deckPtr, deckSize);
         shuffleDeck(deckPtr, deckSize);        
-        for (int i = 0; i < 52; i++){
-            printf("Deck size: %d\n", deckSize);
-            draw = drawCard(&deckPtr, &deckSize);
-            printCard(draw);
-            puts("");
+        // deal 2 cards each to dealer and player
+        deal(&deckPtr, &deckSize, &dealer, 2);
+        printHand(dealer, true);
+        deal(&deckPtr, &deckSize, &p, 2);
+        printHand(p, false);
+
+        while (1){
+            if (p.score == 21 && dealer.score == 21){
+                printf("Push!\n");
+                break;
+            }
+            else if (p.score == 21){
+                printf("Blackjack!\n");
+                break;
+            }
+            else if (p.score > 21){
+                printf("Bust!\n");
+                break;
+            }
+            else if (dealer.score > 21){
+                printf("Player wins!\n");
+                break;
+            }
+
+            action = '\0';
+
+            while (action != 'h' && action != 's'){
+                printf("Your current score is %d, [h]it or [s]tand? ", p.score);
+                scanf(" %c", &action);
+                action = tolower(action);
+            }
+            
+            if (action == 'h'){
+                deal(&deckPtr, &deckSize, &p, 1);
+            }
+
+            if (dealer.score < 17){
+                deal(&deckPtr, &deckSize, &dealer, 1);
+            }
+            
+            printHand(dealer, false);
+            printHand(p, false);
+
+            if (dealer.score > 21){
+                printf("Player wins!\n");
+                break;
+            }
+            if ((dealer.score == 21 || dealer.score > p.score) && action == 's'){
+                printf("Dealer wins!\n");
+                break;
+            }
+            else if (p.score > dealer.score && action == 's'){
+                printf("Player wins!\n");
+                break;
+            }
+            else if (p.score == dealer.score && action == 's'){
+                printf("Push!\n");
+                break;
+            }
         }
     }
-
     free(deckPtr);
 
     return 0;
@@ -102,12 +169,29 @@ void shuffleDeck(card *deckPtr, int deckSize){
 void printDeck(card *deckPtr, int deckSize){
     for (int i = 0; i < deckSize; i++){
         printCard(deckPtr[i]);
-        puts("");
     }
 }
 
 void printCard(card card){
     printf(cardFormat, card.symbol, suits[card.color][card.suit], card.symbol);
+}
+
+void printHand(player player, bool withHoleCard){
+    if (player.dealer){
+        printf("Dealer:\n");
+    }
+    else{
+        printf("Player:\n");
+    }
+    for (int i = 0; i < player.index; i++){
+        if (withHoleCard && i == 0){
+            printf(cardFormat, "?", "?", "?");
+        }
+        else{
+            printCard(player.hand[i]);
+        }
+    }
+    // puts("");
 }
 
 card drawCard(card **deckPtr, int *deckSize){
@@ -128,4 +212,25 @@ card drawCard(card **deckPtr, int *deckSize){
     }
     
     return topCard;
+}
+
+void deal(card **deckPtr, int *deckSize, player *player, int amount){
+    card dealCard;
+
+    if (amount == 0 || deckSize == 0){
+        return;
+    }
+
+    dealCard = drawCard(deckPtr, deckSize);
+    player->hand[player->index++] = dealCard;
+    // printCard(dealCard);
+    
+    if (strcmp(dealCard.symbol, "A") == 0 && player->score >= 11){
+        player->score++;
+    }
+    else{
+        player->score += dealCard.value;
+    }
+    
+    deal(deckPtr, deckSize, player, amount-1);
 }
