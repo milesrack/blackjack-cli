@@ -54,10 +54,8 @@ int main(void){
         printf("malloc() failed!\n");
     }
     else{
-        // create deck and shuffle
         initializeDeck(deckPtr, deckSize);
         shuffleDeck(deckPtr, deckSize);        
-        // deal 2 cards each to dealer and player
         deal(&deckPtr, &deckSize, &dealer, 2);
         printHand(dealer, true);
         deal(&deckPtr, &deckSize, &p, 2);
@@ -104,15 +102,15 @@ int main(void){
                 printf("Player wins!\n");
                 break;
             }
-            if ((dealer.score == 21 || dealer.score > p.score) && action == 's'){
+            if ((dealer.score == 21 || dealer.score > p.score) && dealer.score >= 17 && action == 's'){
                 printf("Dealer wins!\n");
                 break;
             }
-            else if (p.score > dealer.score && action == 's'){
+            else if (p.score > dealer.score && dealer.score >= 17 && action == 's'){
                 printf("Player wins!\n");
                 break;
             }
-            else if (p.score == dealer.score && action == 's'){
+            else if (p.score == dealer.score && dealer.score >= 17 && action == 's'){
                 printf("Push!\n");
                 break;
             }
@@ -191,7 +189,6 @@ void printHand(player player, bool withHoleCard){
             printCard(player.hand[i]);
         }
     }
-    // puts("");
 }
 
 card drawCard(card **deckPtr, int *deckSize){
@@ -223,7 +220,6 @@ void deal(card **deckPtr, int *deckSize, player *player, int amount){
 
     dealCard = drawCard(deckPtr, deckSize);
     player->hand[player->index++] = dealCard;
-    // printCard(dealCard);
     
     if (strcmp(dealCard.symbol, "A") == 0 && player->score >= 11){
         player->score++;
