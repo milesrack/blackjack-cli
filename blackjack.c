@@ -101,7 +101,7 @@ void play(void){
                 }
             }
 
-            if (dealer.score != 21 && p.score != 21){
+            if (dealer.score != 21){
                 printHand(dealer, true);
             }
             else{
@@ -110,7 +110,7 @@ void play(void){
             printHand(p, false);
 
             while (1){
-                if (p.score == 21 && dealer.score == 21){
+                if (p.score == dealer.score && dealer.score >= 17){
                     printf("Push! (+$0.00)\n");
                     break;
                 }
@@ -130,6 +130,16 @@ void play(void){
                     break;
                 }
                 else if (dealer.score > 21){
+                    printf("Player wins! (+$%'.2f)\n", bet);
+                    p.bank += bet;
+                    break;
+                }
+                else if (dealer.score > p.score && dealer.score >= 17 && action == 's'){
+                    printf("Dealer wins! (-$%'.2f)\n", bet);
+                    p.bank -= bet;
+                    break;                   
+                }
+                else if (p.score > dealer.score && dealer.score >= 17){
                     printf("Player wins! (+$%'.2f)\n", bet);
                     p.bank += bet;
                     break;
@@ -159,36 +169,6 @@ void play(void){
                 
                 printHand(dealer, false);
                 printHand(p, false);
-
-                if (dealer.score > 21 && p.score <= 21){
-                    printf("Player wins! (+$%'.2f)\n", bet);
-                    p.bank += bet;
-                    break;
-                }
-                else if (p.score > 21){
-                    printf("Bust! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;
-                }
-                else if (dealer.score == 21){
-                    printf("Dealer wins! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;
-                }
-                else if (dealer.score > p.score && dealer.score >= 17 && action == 's'){
-                    printf("Dealer wins! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;                   
-                }
-                else if (p.score > dealer.score && dealer.score >= 17){
-                    printf("Player wins! (+$%'.2f)\n", bet);
-                    p.bank += bet;
-                    break;
-                }
-                else if (p.score == dealer.score && dealer.score >= 17 && action == 's'){
-                    printf("Push! (+$0.00)\n");
-                    break;
-                }
             }
         }
         if (deckSize == 0){
@@ -322,9 +302,6 @@ card drawCard(card **deckPtr, int *deckSize){
             printf("realloc() failed!\n");
         }
     }
-    // else{
-    //     *deckPtr = NULL;
-    // }
     
     return topCard;
 }
@@ -334,7 +311,7 @@ bool deal(card **deckPtr, int *deckSize, player *player){
 
     dealCard = drawCard(deckPtr, deckSize);
     
-    if (deckSize == 0){
+    if (*deckSize == 0){
         return false;
     }
     
