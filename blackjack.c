@@ -110,6 +110,8 @@ void play(void){
             printHand(p, false);
 
             while (1){
+				action = '\0';
+
                 if (p.score == dealer.score && dealer.score >= 17){
                     printf("Push! (+$0.00)\n");
                     break;
@@ -144,8 +146,6 @@ void play(void){
                     p.bank += bet;
                     break;
                 }
-
-                action = '\0';
 
                 while (action != 'h' && action != 's'){
                     printf("Would you like to [h]it or [s]tand? ");
