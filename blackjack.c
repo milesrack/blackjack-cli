@@ -100,75 +100,60 @@ void play(void){
                     return;
                 }
             }
-
-            if (dealer.score != 21){
+            
+            while (p.score < 21){
                 printHand(dealer, true);
-            }
-            else{
-                printHand(dealer, false);
-            }
-            printHand(p, false);
-
-            while (1){
-				action = '\0';
-
-                if (p.score == dealer.score && dealer.score >= 17){
-                    printf("Push! (+$0.00)\n");
-                    break;
-                }
-                else if (p.score == 21){
-                    printf("Blackjack! (+$%'.2f)\n", bet * 1.5);
-                    p.bank += bet * 1.5;
-                    break;
-                }
-                else if (dealer.score == 21){
-                    printf("Dealer wins! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;
-                }
-                else if (p.score > 21){
-                    printf("Bust! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;
-                }
-                else if (dealer.score > 21){
-                    printf("Player wins! (+$%'.2f)\n", bet);
-                    p.bank += bet;
-                    break;
-                }
-                else if (dealer.score > p.score && dealer.score >= 17 && action == 's'){
-                    printf("Dealer wins! (-$%'.2f)\n", bet);
-                    p.bank -= bet;
-                    break;                   
-                }
-                else if (p.score > dealer.score && dealer.score >= 17){
-                    printf("Player wins! (+$%'.2f)\n", bet);
-                    p.bank += bet;
-                    break;
-                }
-
+                printHand(p, false);
+                
+                action = '\0';
                 while (action != 'h' && action != 's'){
                     printf("Would you like to [h]it or [s]tand? ");
                     scanf(" %c", &action);
-                    action = tolower(action);
                 }
-                
+
                 if (action == 'h'){
                     if (!deal(&deckPtr, &deckSize, &p)){
                         printf("Deck is empty!\n");
                         return;
-                    }
+                    }   
                 }
+                else{
+                    break;
+                }
+            }
 
-                if (dealer.score < 17){
-                    if (!deal(&deckPtr, &deckSize, &dealer)){
-                        printf("Deck is empty!\n");
-                        return;
-                    }
+            while (dealer.score < 17){
+                if (!deal(&deckPtr, &deckSize, &dealer)){
+                    printf("Deck is empty!\n");
+                    return;
                 }
-                
-                printHand(dealer, false);
-                printHand(p, false);
+            }
+
+            printHand(dealer, false);
+            printHand(p, false);
+
+            if (p.score > 21){
+                printf("Bust! (-$%.2f)\n", bet);
+                p.bank -= bet;
+            }
+            else if (p.score == dealer.score){
+                printf("Push! (+$0.00)\n");
+            }
+            else if (p.score == 21){
+                printf("Blackjack! (+$%.2f)\n", bet * 1.5);
+                p.bank += bet * 1.5;
+            }
+            else if (dealer.score > 21){
+                printf("Player wins! (+$%.2f)\n", bet);
+                p.bank += bet;
+            }
+            else if (p.score > dealer.score){
+                printf("Player wins! (+$%.2f)\n", bet);
+                p.bank += bet;
+            }
+            else if (p.score < dealer.score){
+                printf("Dealer wins! (-$%.2f)\n", bet);
+                p.bank -= bet;
             }
         }
         if (deckSize == 0){
